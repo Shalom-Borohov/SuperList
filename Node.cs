@@ -2,8 +2,8 @@
 {
     public class Node<T>
     {
-        private Node<T> Prev;
-        private Node<T> Next;
-        private T Value;
+        public Node<T> Prev;
+        public Node<T> Next;
+        public T Value;
     }
 }
