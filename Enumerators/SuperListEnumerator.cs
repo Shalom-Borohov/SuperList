@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using SuperList.Lists.Classes;
 
-namespace SuperList
+namespace SuperList.Enumerators
 {
     public class SuperListEnumerator<T> : IEnumerator<T>
     {
         public DoublyLinkedList<T> List = null;
-        public int position = -1;
+        public int Position = -1;
 
         public SuperListEnumerator(DoublyLinkedList<T> list)
         {
@@ -29,18 +30,18 @@ namespace SuperList
             }
         }
 
-        public T Current => List.GetNodeAt(position).Value;
+        public T Current => List.GetNodeAt(Position).Value;
 
         public bool MoveNext()
         {
-            position++;
+            Position++;
 
-            return !List.IsIndexOutOfRange(position);
+            return !List.IsIndexOutOfRange(Position);
         }
 
         public void Reset()
         {
-            position = -1;
+            Position = -1;
         }
 
         public void Dispose()

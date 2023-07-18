@@ -1,16 +1,19 @@
 ﻿using System;
 using System.Collections;
+using SuperList.Enumerators;
+using SuperList.Events.EventHandlers;
+using SuperList.Lists.Interfaces;
+using SuperList.Nodes;
 
-namespace SuperList
+namespace SuperList.Lists.Classes
 {
-    public class DoublyLinkedList<T> : IList
+    public class DoublyLinkedList<T> : IList, IActionable<T>
     {
         public Node<T> Head = null;
         public int Count = 0;
+        public ChangeEventHandler<T> ChangeEventHandler;
 
         object IList.this[int index] { get => GetNodeAt(index); set => throw new NotImplementedException(); }
-
-        public int Size => Count;
 
         int ICollection.Count => Count;
 
@@ -19,10 +22,16 @@ namespace SuperList
             GetLastNode().Next = new Node<T> { Value = (T)value };
             Count++;
 
+            ChangeEventHandler.RaiseAddEvent(this, (T)value);
+
             return Count - 1;
         }
 
-        public void Remove(object value) => RemoveAt(IndexOf(value));
+        public void Remove(object value)
+        {
+            RemoveAt(IndexOf(value));
+            ChangeEventHandler.RaiseRemoveEvent(this, (T)value);
+        }
 
         public void RemoveAt(int index)
         {
@@ -47,6 +56,8 @@ namespace SuperList
             {
                 nextNode.Prev = prevNode;
             }
+
+            ChangeEventHandler.RaiseRemoveEvent(this, nodeToRemove.Value);
         }
 
         public int IndexOf(object value)
@@ -87,6 +98,39 @@ namespace SuperList
         public bool IsIndexOutOfRange(int index) => index < 0 || index >= Count;
 
         public IEnumerator GetEnumerator() => new SuperListEnumerator<T>(this);
+
+        public void ApplyByValue(Action<T> doAction, T value)
+        {
+            var node = GetNodeAt(IndexOf(value));
+
+            doAction(node.Value);
+        }
+
+        public void ApplyAll(Action<T> doAction)
+        {
+            var currentNode = Head;
+
+            while (!(currentNode is null))
+            {
+                doAction(currentNode.Value);
+                currentNode = currentNode.Next;
+            }
+        }
+
+        public void ApplyByPredicate(Action<T> doAction, Func<T, bool> predicate)
+        {
+            var currentNode = Head;
+
+            while (!(currentNode is null))
+            {
+                if (predicate(currentNode.Value))
+                {
+                    doAction(currentNode.Value);
+                }
+
+                currentNode = currentNode.Next;
+            }
+        }
 
         public void Clear()
         {

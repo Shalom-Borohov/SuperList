@@ -1,4 +1,4 @@
-﻿namespace SuperList
+﻿namespace SuperList.Nodes
 {
     public class Node<T>
     {
