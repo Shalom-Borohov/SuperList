@@ -9,9 +9,16 @@ namespace SuperList.Lists.Classes
 {
     public class DoublyLinkedList<T> : IList, IActionable<T>
     {
-        public Node<T> Head = null;
-        public int Count = 0;
-        public ChangeEventHandler<T> ChangeEventHandler;
+        public Node<T> Head { get; set; }
+        public int Count { get; set; }
+        public ChangeEventHandler<T> ChangeEventHandler { get; set; }
+
+        public DoublyLinkedList()
+        {
+            Head = null;
+            Count = 0;
+            ChangeEventHandler = new ChangeEventHandler<T>();
+        }
 
         object IList.this[int index] { get => GetNodeAt(index); set => throw new NotImplementedException(); }
 
@@ -19,9 +26,18 @@ namespace SuperList.Lists.Classes
 
         public int Add(object value)
         {
-            GetLastNode().Next = new Node<T> { Value = (T)value };
-            Count++;
+            var nodeToAdd = new Node<T> { Value = (T)value };
 
+            if (Head is null)
+            {
+                Head = nodeToAdd;
+            }
+            else
+            {
+                GetLastNode().Next = nodeToAdd;
+            }
+
+            Count++;
             ChangeEventHandler.RaiseAddEvent(this, (T)value);
 
             return Count - 1;

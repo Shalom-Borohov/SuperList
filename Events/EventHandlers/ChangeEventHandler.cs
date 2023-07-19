@@ -5,7 +5,7 @@ namespace SuperList.Events.EventHandlers
 {
     public class ChangeEventHandler<T>
     {
-        public event EventHandler<ChangeEventArgs<T>> RaiseChangeEvent;
+        public event EventHandler<ChangeEventArgs<T>> RaiseChangeEvent = delegate { };
 
         public void RaiseAddEvent(object publisher, T value) =>
             RaiseChangeEvent(publisher, new ChangeEventArgs<T>("Added value", value));
