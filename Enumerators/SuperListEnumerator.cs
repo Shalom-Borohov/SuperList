@@ -44,9 +44,6 @@ namespace SuperList.Enumerators
             Position = -1;
         }
 
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
+        public void Dispose() { }
     }
 }

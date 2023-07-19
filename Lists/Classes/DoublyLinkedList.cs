@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using SuperList.Enumerators;
 using SuperList.Events.EventHandlers;
 using SuperList.Lists.Interfaces;
@@ -7,7 +8,7 @@ using SuperList.Nodes;
 
 namespace SuperList.Lists.Classes
 {
-    public class DoublyLinkedList<T> : IList, IActionable<T>
+    public class DoublyLinkedList<T> : IList, IActionable<T>, IEnumerable<T>
     {
         public Node<T> Head { get; set; }
         public int Count { get; set; }
@@ -73,6 +74,12 @@ namespace SuperList.Lists.Classes
                 nextNode.Prev = prevNode;
             }
 
+            if (Count == 1)
+            {
+                Head = null;
+            }
+
+            Count--;
             ChangeEventHandler.RaiseRemoveEvent(this, nodeToRemove.Value);
         }
 
@@ -112,8 +119,6 @@ namespace SuperList.Lists.Classes
         }
 
         public bool IsIndexOutOfRange(int index) => index < 0 || index >= Count;
-
-        public IEnumerator GetEnumerator() => new SuperListEnumerator<T>(this);
 
         public void ApplyByValue(Action<T> doAction, T value)
         {
@@ -175,5 +180,9 @@ namespace SuperList.Lists.Classes
         {
             throw new NotImplementedException();
         }
+
+        public IEnumerator<T> GetEnumerator() => new SuperListEnumerator<T>(this);
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }
