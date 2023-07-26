@@ -3,12 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using SuperList.Enumerators;
 using SuperList.Events.EventHandlers;
-using SuperList.Lists.Interfaces;
 using SuperList.Nodes;
 
-namespace SuperList.Lists.Classes
+namespace SuperList.Lists
 {
-    public class DoublyLinkedList<T> : IList, IActionable<T>, IEnumerable<T>
+    public class DoublyLinkedList<T> : IList<T>, IActionable<T>
     {
         public Node<T> Head { get; set; }
         public int Count { get; set; }
@@ -21,13 +20,23 @@ namespace SuperList.Lists.Classes
             ChangeEventHandler = new ChangeEventHandler<T>();
         }
 
-        object IList.this[int index] { get => GetNodeAt(index); set => throw new NotImplementedException(); }
-
-        int ICollection.Count => Count;
-
-        public int Add(object value)
+        T IList<T>.this[int index]
         {
-            var nodeToAdd = new Node<T> { Value = (T)value };
+            get
+            {
+                if (IsIndexOutOfRange(index))
+                {
+                    throw new IndexOutOfRangeException();
+                }
+
+                return GetNodeAt(index).Value;
+            }
+            set => throw new NotSupportedException();
+        }
+
+        public void Add(T value)
+        {
+            var nodeToAdd = new Node<T>(value);
 
             if (Head is null)
             {
@@ -35,19 +44,21 @@ namespace SuperList.Lists.Classes
             }
             else
             {
-                GetLastNode().Next = nodeToAdd;
+                var lastNode = GetLastNode();
+                lastNode.Next = nodeToAdd;
+                nodeToAdd.Prev = lastNode;
             }
 
             Count++;
-            ChangeEventHandler.RaiseAddEvent(this, (T)value);
-
-            return Count - 1;
+            ChangeEventHandler.RaiseAddEvent(this, value);
         }
 
-        public void Remove(object value)
+        public bool Remove(T value)
         {
             RemoveAt(IndexOf(value));
-            ChangeEventHandler.RaiseRemoveEvent(this, (T)value);
+            ChangeEventHandler.RaiseRemoveEvent(this, value);
+
+            return true;
         }
 
         public void RemoveAt(int index)
@@ -55,6 +66,13 @@ namespace SuperList.Lists.Classes
             if (IsIndexOutOfRange(index))
             {
                 throw new IndexOutOfRangeException();
+            }
+
+            if (Count == 1)
+            {
+                Head = null;
+
+                return;
             }
 
             var nodeToRemove = GetNodeAt(index);
@@ -74,21 +92,16 @@ namespace SuperList.Lists.Classes
                 nextNode.Prev = prevNode;
             }
 
-            if (Count == 1)
-            {
-                Head = null;
-            }
-
             Count--;
             ChangeEventHandler.RaiseRemoveEvent(this, nodeToRemove.Value);
         }
 
-        public int IndexOf(object value)
+        public int IndexOf(T value)
         {
             var index = 0;
             var currentNode = Head;
 
-            while (!(currentNode is null) && !((T)value).Equals(currentNode.Value))
+            while (!(currentNode is null) && !value.Equals(currentNode.Value))
             {
                 currentNode = currentNode.Next;
                 index++;
@@ -120,25 +133,25 @@ namespace SuperList.Lists.Classes
 
         public bool IsIndexOutOfRange(int index) => index < 0 || index >= Count;
 
-        public void ApplyByValue(Action<T> doAction, T value)
+        public void ApplyByValue(Action<T> action, T value)
         {
             var node = GetNodeAt(IndexOf(value));
 
-            doAction(node.Value);
+            action.Invoke(node.Value);
         }
 
-        public void ApplyAll(Action<T> doAction)
+        public void ApplyAll(Action<T> action)
         {
             var currentNode = Head;
 
             while (!(currentNode is null))
             {
-                doAction(currentNode.Value);
+                action.Invoke(currentNode.Value);
                 currentNode = currentNode.Next;
             }
         }
 
-        public void ApplyByPredicate(Action<T> doAction, Func<T, bool> predicate)
+        public void ApplyByPredicate(Action<T> action, Predicate<T> predicate)
         {
             var currentNode = Head;
 
@@ -146,43 +159,34 @@ namespace SuperList.Lists.Classes
             {
                 if (predicate(currentNode.Value))
                 {
-                    doAction(currentNode.Value);
+                    action.Invoke(currentNode.Value);
                 }
 
                 currentNode = currentNode.Next;
             }
         }
 
+        public IEnumerator<T> GetEnumerator() => new SuperListEnumerator<T>(this);
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
         public void Clear()
         {
             throw new NotImplementedException();
         }
 
-        public bool Contains(object value)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CopyTo(Array array, int index)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool IsFixedSize => throw new NotImplementedException();
+        public bool Contains(T item) => throw new NotImplementedException();
 
         public bool IsReadOnly => throw new NotImplementedException();
 
-        public bool IsSynchronized => throw new NotImplementedException();
-
-        public object SyncRoot => throw new NotImplementedException();
-
-        public void Insert(int index, object value)
+        public void Insert(int index, T item)
         {
             throw new NotImplementedException();
         }
 
-        public IEnumerator<T> GetEnumerator() => new SuperListEnumerator<T>(this);
-
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
